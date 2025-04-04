@@ -1,0 +1,93 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome | Budget Buddy</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-image: url("{% static 'allocation/marketing_budget.jpg' %}");
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .overlay {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 3rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #444;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: #ffffff;
+            padding: 1.5rem;
+            margin: 1rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            width: 250px;
+            cursor: pointer;
+            transition: transform 0.3s, background-color 0.3s;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            background-color: #e0f7fa;
+        }
+
+        .emoji {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .card h2 {
+            margin: 0.5rem 0;
+            font-size: 1.2rem;
+        }
+
+        .card p {
+            font-size: 0.9rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay">
+        <h1>👋 Welcome to Budget Buddy!</h1>
+        <p class="subtitle">Your all-in-one 💸 Expense Optimizer & 📊 Tracker</p>
+
+        <a href="{% url 'home' %}" class="card">
+            <div class="emoji">🧠</div>
+            <h2>Budget Optimizer</h2>
+            <p>Plan your allocations smartly</p>
+        </a>
+
+        <a href="{% url 'expense_list' %}" class="card">
+            <div class="emoji">📋</div>
+            <h2>Expense Tracker</h2>
+            <p>Track your daily spending</p>
+        </a>
+    </div>
+</body>
+</html>

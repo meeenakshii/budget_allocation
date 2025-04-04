@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Expense Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        h2 {
+            color: #4CAF50;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .home-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            text-decoration: none;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+
+        .home-btn:hover {
+            background-color: #0056b3;
+        }
+
+        table {
+            width: 80%;
+            margin: auto;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+            font-size: 18px;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .delete-btn {
+            background-color: #ff4444;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        .delete-btn:hover {
+            background-color: #cc0000;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            background-color: #ff6600;
+            color: white;
+            padding: 12px 24px;
+            font-size: 18px;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+
+        a:hover {
+            background-color: #e65c00;
+        }
+
+        .chart-container {
+            margin-top: 40px;
+            width: 60%;
+            margin: auto;
+        }
+        <style>
+    .reset-btn {
+        position: absolute;
+        top: 20px;
+        right: 100px;
+        background-color: #ff0000;
+        color: white;
+        padding: 10px 20px;
+        font-size: 16px;
+        border-radius: 8px;
+        transition: 0.3s;
+        text-decoration: none;
+    }
+
+    .reset-btn:hover {
+        background-color: #cc0000;
+    }
+</style>
+
+    </style>
+</head>
+<body>
+    <a href="{% url 'homepage' %}" class="home-btn">🏠 Home</a>
+    <a href="{% url 'reset_expenses' %}" class="reset-btn" onclick="return confirm('Are you sure you want to reset everything?')">🔄 Reset</a>
+ 
+    
+    <h2>📊 Expense Tracker</h2>
+
+    <table>
+        <tr>
+            <th>Category</th>
+            <th>Amount</th>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Actions</th>
+        </tr>
+        {% for expense in expenses %}
+        <tr>
+            <td>{{ expense.category }}</td>
+            <td>💵 ${{ expense.amount }}</td>
+            <td>{{ expense.date }}</td>
+            <td>{{ expense.description }}</td>
+            <td>
+                <a href="{% url 'delete_expense' expense.id %}" class="delete-btn">❌ Delete</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5" style="text-align:center; font-size:18px; color: red;">No expenses recorded yet.</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <a href="{% url 'add_expense' %}">➕ Add Expense</a>
+
+    <!-- Chart Section Below Table -->
+    <div class="chart-container">
+        <canvas id="budgetChart"></canvas>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('budgetChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Budget', 'Total Expenses'],
+                datasets: [{
+                    label: 'Amount ($)',
+                    data: [{{ budget }}, {{ total_expenses }}],
+                    backgroundColor: ['#A2D5F2', '#F7A1C4'], // Pastel blue & pink
+                    borderColor: ['#6BAED6', '#E07A9E'],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
