@@ -193,3 +193,65 @@ def reset_expenses(request):
     Expense.objects.all().delete()
     return redirect("expense_list")
 
+
+
+from django.shortcuts import render
+from scipy.optimize import linprog
+import numpy as np
+
+def debt_optimizer(request):
+    result = None
+    error = None
+
+    if request.method == 'POST':
+        try:
+            budget = float(request.POST.get('budget'))
+            raw_debts = request.POST['debts'].split('\n')
+
+            principals = []
+            interest_rates = []
+            min_payments = []
+
+            for line in raw_debts:
+                if not line.strip():
+                    continue
+                parts = line.strip().split(',')
+                if len(parts) != 2:
+                    continue
+                principal, rate = map(float, parts)
+                principals.append(principal)
+                interest_rates.append(rate)
+                # Calculate min payment dynamically
+                min_payments.append(max(0.02 * principal, 100))  # 2% or ₹100
+
+            if not principals:
+                raise ValueError("No valid debt data provided.")
+
+            # Objective: Minimize total interest this month
+            c = interest_rates
+
+            # Constraint: sum(payments) <= budget
+            A = [np.ones(len(principals))]
+            b = [budget]
+
+            # Bounds: payment_i >= min_payment_i and <= principal
+            bounds = [(min_payments[i], principals[i]) for i in range(len(principals))]
+
+            res = linprog(c=c, A_ub=A, b_ub=b, bounds=bounds, method='highs')
+
+            if res.success:
+                payments = res.x.tolist()
+                result = list(zip(principals, interest_rates, min_payments, payments))
+            else:
+                error = "Optimization failed. Please try different inputs."
+
+        except Exception as e:
+            error = str(e)
+
+    return render(request, 'allocation/debt_optimizer.html', {
+        'result': result,
+        'error': error,
+        'expenses': request.session.get('expenses', [])
+    })
+
+

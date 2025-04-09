@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-2r@8w$0kk5%v0yb7sqk_gx0djb%do^b*8_q-3j=85!z!w(_^@7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['budget-buddy-web.onrender.com']  # Use '*' during development, but restrict it in production
+ALLOWED_HOSTS = []  # Use '*' during development, but restrict it in production
 
 
 

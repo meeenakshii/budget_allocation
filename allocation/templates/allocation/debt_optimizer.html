@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Debt Repayment Optimizer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            padding: 2rem;
+            background-color: #f4f7fa;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        form {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        label {
+            margin-top: 1rem;
+            font-weight: 600;
+            display: block;
+        }
+
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 0.65rem;
+            margin-top: 0.3rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 0.4rem;
+            font-size: 1rem;
+            background-color: #fdfdfd;
+        }
+
+        input[type="submit"] {
+            background-color: #28a745;
+            color: white;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            width: 100%;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #218838;
+        }
+
+        .result, .error {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 1.5rem;
+            border-radius: 0.6rem;
+            font-size: 1rem;
+        }
+
+        .result {
+            background-color: #e6ffe6;
+            border: 1px solid #a3d9a5;
+        }
+
+        .error {
+            background-color: #ffe6e6;
+            border: 1px solid #ff9999;
+            color: #b30000;
+        }
+
+        ul {
+            padding-left: 1.5rem;
+        }
+
+        li {
+            margin-bottom: 0.75rem;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: #007bff;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.4rem;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .back-button:hover {
+            background-color: #0056b3;
+        }
+
+        .note {
+            font-size: 0.9rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+<a href="/home" class="back-button">← Back to Home</a>
+
+<h1>🧾 Debt Repayment Optimizer</h1>
+
+<form method="POST">
+    {% csrf_token %}
+    
+    <label for="budget">Total Monthly Budget (₹):</label>
+    <input type="number" name="budget" step="0.01" placeholder="e.g. 5000" required>
+
+    <label for="debts">Debts (one per line):</label>
+    <textarea name="debts" rows="6" placeholder="Format: principal,interest_rate&#10;e.g.&#10;15000,0.18&#10;8000,0.12" required></textarea>
+    <div class="note">Each line should be in this format: <code>principal,interest_rate</code></div>
+
+    <input type="submit" value="📊 Optimize Payment Plan">
+</form>
+
+{% if error %}
+    <div class="error">
+        <strong>⚠ Error:</strong> {{ error }}
+    </div>
+{% endif %}
+
+{% if result %}
+    <div class="result">
+        <h2>✅ Optimized Monthly Payments</h2>
+        <ul>
+            {% for principal, rate, min_payment, payment in result %}
+                <li>
+                    💳 <strong>Principal:</strong> ₹{{ principal }},
+                    <strong>Interest:</strong> {{ rate|floatformat:2 }},
+                    <strong>Minimum (2% or ₹100):</strong> ₹{{ min_payment|floatformat:2 }},
+                    <strong>Suggested:</strong> ₹{{ payment|floatformat:2 }}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+
+</body>
+</html>
