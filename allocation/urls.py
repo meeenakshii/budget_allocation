@@ -1,5 +1,7 @@
 from django.urls import path
 from .views import home, expense_list, add_expense, delete_expense, delete_department, reset_budget, reset_expenses, homepage, debt_optimizer
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('', homepage, name='homepage'), 
@@ -14,3 +16,5 @@ urlpatterns = [
 
 
 ]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
