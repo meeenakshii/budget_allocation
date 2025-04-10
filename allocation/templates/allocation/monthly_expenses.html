@@ -1,0 +1,116 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Monthly Expense Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 font-sans leading-normal tracking-normal">
+
+<a href="{% url 'homepage' %}" class="block text-blue-600 hover:text-blue-800 ml-6 mt-6 text-lg">🏠 Home</a>
+
+<div class="max-w-5xl mx-auto px-4 py-10">
+    <h1 class="text-4xl font-extrabold text-blue-700 mb-8 text-center">📅 Monthly Expense Tracker</h1>
+
+    {% if error %}
+        <div class="bg-red-100 text-red-700 px-4 py-3 rounded mb-6">
+            {{ error }}
+        </div>
+    {% endif %}
+
+    <!-- Add Expense Form -->
+    <div class="bg-white shadow-lg rounded-xl p-6 mb-10 transition-transform hover:scale-[1.01]">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">➕ Add Daily Expense</h2>
+        <form method="POST" action="">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="date" class="text-gray-600 text-sm">Date</label>
+                    <input type="date" name="date" required class="w-full border rounded-lg px-3 py-2 mt-1" />
+                </div>
+                <div>
+                    <label for="category" class="text-gray-600 text-sm">Category</label>
+                    <input type="text" name="category" placeholder="e.g. Groceries, Rent" required class="w-full border rounded-lg px-3 py-2 mt-1" />
+                </div>
+                <div>
+                    <label for="amount" class="text-gray-600 text-sm">Amount (₹)</label>
+                    <input type="number" name="amount" step="0.01" required class="w-full border rounded-lg px-3 py-2 mt-1" />
+                </div>
+                <div>
+                    <label for="note" class="text-gray-600 text-sm">Note (optional)</label>
+                    <input type="text" name="note" class="w-full border rounded-lg px-3 py-2 mt-1" />
+                </div>
+            </div>
+            <button type="submit" class="mt-5 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-semibold">
+                ➕ Add Expense
+            </button>
+        </form>
+    </div>
+
+    <!-- Expenses Table -->
+    <div class="bg-white shadow-lg rounded-xl p-6 mb-10 transition-transform hover:scale-[1.01]">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">📋 Expenses This Month</h2>
+        {% if expenses %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-100 text-gray-600">
+                    <tr>
+                        <th class="px-4 py-2 text-left">Date</th>
+                        <th class="px-4 py-2 text-left">Category</th>
+                        <th class="px-4 py-2 text-left">Amount (₹)</th>
+                        <th class="px-4 py-2 text-left">Note</th>
+                        <th class="px-4 py-2 text-left">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 text-gray-700">
+                    {% for exp in expenses %}
+                    <tr>
+                        <td class="px-4 py-2">{{ exp.date }}</td>
+                        <td class="px-4 py-2">{{ exp.category }}</td>
+                        <td class="px-4 py-2 font-semibold">₹{{ exp.amount }}</td>
+                        <td class="px-4 py-2">{{ exp.description }}</td>
+                        <td class="px-4 py-2 flex gap-2">
+                            {% if exp.id %}
+                            <form method="POST" action="{% url 'delete_expense' exp.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="bg-white text-red-600 border border-red-500 px-2 py-1 rounded text-sm hover:bg-red-100 transition">
+                                    🗑
+                                </button>
+                            </form>
+                            <a href="{% url 'update_expense' exp.id %}" class="bg-white text-yellow-600 border border-yellow-500 px-2 py-1 rounded text-sm hover:bg-yellow-100 transition">
+                                ✏️
+                            </a>
+                            {% else %}
+                            <span class="text-gray-400">N/A</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <p class="text-gray-500">No expenses recorded yet. Start tracking now!</p>
+        {% endif %}
+    </div>
+
+    <!-- Monthly Summary -->
+    <div class="bg-white shadow-lg rounded-xl p-6 transition-transform hover:scale-[1.01]">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">📊 Monthly Summary</h2>
+        {% if expenses %}
+        <p class="text-lg text-gray-700 mb-2">Total Spent: <span class="text-blue-600 font-bold">₹{{ total_spent }}</span></p>
+        <p class="text-gray-600 mb-2">Category-wise Breakdown:</p>
+        <ul class="list-disc pl-6 text-gray-700">
+            {% for cat, amt in category_breakdown.items %}
+                <li>{{ cat }}: ₹{{ amt }}</li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-gray-500">No data to summarize.</p>
+        {% endif %}
+    </div>
+</div>
+
+</body>
+</html>

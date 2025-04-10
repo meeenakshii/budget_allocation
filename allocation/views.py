@@ -85,9 +85,12 @@ def home(request):
             request.session["max_funding"] = max_funding
 
             # Ensure at least one department exists
+            # Ensure at least two departments exist = len(departments)
             n = len(departments)
-            if n == 0:
-                optimized_allocation = "Error: No departments provided."
+            if n < 2:
+                optimized_allocation = "Insufficient data: Please enter at least two departments."
+                return render(request, "allocation/home.html", {"optimized_allocation": optimized_allocation})
+
             else:
                 total_min_funding = sum(min_funding)
                 
@@ -254,4 +257,81 @@ def debt_optimizer(request):
         'expenses': request.session.get('expenses', [])
     })
 
+
+from django.shortcuts import render, redirect, get_object_or_404
+from collections import defaultdict
+from datetime import datetime
+from decimal import Decimal
+from .models import Expense
+
+# View to show/add expenses
+def monthly_expenses(request):
+    expenses = Expense.objects.all().order_by('-date')
+
+    if request.method == "POST":
+        try:
+            date_str = request.POST.get("date")
+            category = request.POST.get("category")
+            amount = Decimal(request.POST.get("amount"))
+            note = request.POST.get("note", "")
+
+            # Validate and convert date
+            date = datetime.strptime(date_str, "%Y-%m-%d").date()
+
+            Expense.objects.create(
+                date=date,
+                category=category,
+                amount=amount,
+                description=note
+            )
+            return redirect("monthly_expenses")
+
+        except Exception as e:
+            # If error, pass existing data with error message
+            total_spent = sum(exp.amount for exp in expenses)
+            category_breakdown = defaultdict(Decimal)
+            for exp in expenses:
+                category_breakdown[exp.category] += exp.amount
+
+            return render(request, "allocation/monthly_expenses.html", {
+                "expenses": expenses,
+                "total_spent": total_spent,
+                "category_breakdown": dict(category_breakdown),
+                "error": f"Error: {str(e)}"
+            })
+
+    # Monthly summary
+    total_spent = sum(exp.amount for exp in expenses)
+    category_breakdown = defaultdict(Decimal)
+    for exp in expenses:
+        category_breakdown[exp.category] += exp.amount
+
+    return render(request, "allocation/monthly_expenses.html", {
+        "expenses": expenses,
+        "total_spent": total_spent,
+        "category_breakdown": dict(category_breakdown),
+    })
+
+def delete_expense(request, expense_id):
+    expense = Expense.objects.get(id=expense_id)
+    expense.delete()
+    return redirect('monthly_expenses')
+
+
+# View to update an expense
+def update_expense(request, id):
+    expense = get_object_or_404(Expense, id=id)
+
+    if request.method == "POST":
+        try:
+            expense.category = request.POST.get("category")
+            expense.amount = Decimal(request.POST.get("amount"))
+            expense.description = request.POST.get("note", "")
+            expense.date = datetime.strptime(request.POST.get("date"), "%Y-%m-%d").date()
+            expense.save()
+            return redirect("monthly_expenses")
+        except Exception as e:
+            return render(request, "allocation/update_expense.html", {"expense": expense, "error": f"Error: {str(e)}"})
+
+    return render(request, "allocation/update_expense.html", {"expense": expense})
 

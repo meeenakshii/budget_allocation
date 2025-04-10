@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import home, expense_list, add_expense, delete_expense, delete_department, reset_budget, reset_expenses, homepage, debt_optimizer
+from .views import home, expense_list, add_expense, delete_expense, delete_department, reset_budget, reset_expenses, homepage, debt_optimizer, monthly_expenses,delete_expense,update_expense
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -13,6 +13,12 @@ urlpatterns = [
     path('reset-budget/', reset_budget, name='reset_budget'),
     path('expenses/reset/', reset_expenses, name='reset_expenses'),  # Added reset URL
     path('debt-optimizer/', debt_optimizer, name='debt_optimizer'),
+    path("monthly-expenses/", monthly_expenses, name="monthly_expenses"),
+    path("delete-expense/<int:id>/", delete_expense, name="delete_expense"),
+    path('monthly-expenses/', monthly_expenses, name='monthly_expenses'),
+    path('expenses/delete/<int:id>/', delete_expense, name='delete_expense'),
+    path('expenses/update/<int:id>/', update_expense, name='update_expense'),
+
 
 
 ]
