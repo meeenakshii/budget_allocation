@@ -173,10 +173,11 @@ def add_expense(request):
         form = ExpenseForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('allocation/expense_list')
+            return redirect('expense_list')  # ✅ fixed redirect
     else:
         form = ExpenseForm()
     return render(request, 'allocation/add_expense.html', {'form': form})
+
 
 def delete_expense(request, expense_id):
     """Deletes an expense entry."""
