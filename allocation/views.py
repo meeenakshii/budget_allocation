@@ -173,7 +173,7 @@ def add_expense(request):
         form = ExpenseForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('expense_list')
+            return redirect('allocation/expense_list')
     else:
         form = ExpenseForm()
     return render(request, 'allocation/add_expense.html', {'form': form})
@@ -201,6 +201,7 @@ def reset_expenses(request):
 from django.shortcuts import render
 from scipy.optimize import linprog
 import numpy as np
+import math
 
 def debt_optimizer(request):
     result = None
@@ -244,7 +245,11 @@ def debt_optimizer(request):
 
             if res.success:
                 payments = res.x.tolist()
-                result = list(zip(principals, interest_rates, min_payments, payments))
+                months = [
+                    math.ceil(principals[i] / payments[i]) if payments[i] > 0 else float('inf')
+                    for i in range(len(principals))
+                ]
+                result = list(zip(principals, interest_rates, min_payments, payments, months))
             else:
                 error = "Optimization failed. Please try different inputs."
 
@@ -256,6 +261,7 @@ def debt_optimizer(request):
         'error': error,
         'expenses': request.session.get('expenses', [])
     })
+
 
 
 from django.shortcuts import render, redirect, get_object_or_404
@@ -312,7 +318,7 @@ def monthly_expenses(request):
         "category_breakdown": dict(category_breakdown),
     })
 
-def delete_expense(request, expense_id):
+def delete_monthly_expense(request, expense_id):
     expense = Expense.objects.get(id=expense_id)
     expense.delete()
     return redirect('monthly_expenses')

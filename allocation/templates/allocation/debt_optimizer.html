@@ -110,8 +110,7 @@
     </style>
 </head>
 <body>
-
-<a href="/home" class="back-button">← Back to Home</a>
+    <a href="{% url 'homepage' %}" class="home-btn">🏠 Home</a>
 
 <h1>🧾 Debt Repayment Optimizer</h1>
 
@@ -137,18 +136,31 @@
 {% if result %}
     <div class="result">
         <h2>✅ Optimized Monthly Payments</h2>
-        <ul>
-            {% for principal, rate, min_payment, payment in result %}
-                <li>
-                    💳 <strong>Principal:</strong> ₹{{ principal }},
-                    <strong>Interest:</strong> {{ rate|floatformat:2 }},
-                    <strong>Minimum (2% or ₹100):</strong> ₹{{ min_payment|floatformat:2 }},
-                    <strong>Suggested:</strong> ₹{{ payment|floatformat:2 }}
-                </li>
-            {% endfor %}
-        </ul>
+        <table style="width:100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background-color:#d3f9d8;">
+                    <th style="padding: 0.5rem; border: 1px solid #ccc;">💳 Principal (₹)</th>
+                    <th style="padding: 0.5rem; border: 1px solid #ccc;">Interest Rate (%)</th>
+                    <th style="padding: 0.5rem; border: 1px solid #ccc;">Minimum Payment (₹)</th>
+                    <th style="padding: 0.5rem; border: 1px solid #ccc;">Suggested Payment (₹)</th>
+                    <th style="padding: 0.5rem; border: 1px solid #ccc;">Months to Pay Off</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for principal, rate, min_payment, payment, months in result %}
+                <tr>
+                    <td style="padding: 0.5rem; border: 1px solid #ccc;">₹{{ principal|floatformat:2 }}</td>
+                    <td style="padding: 0.5rem; border: 1px solid #ccc;">{{ rate|floatformat:2 }}</td>
+                    <td style="padding: 0.5rem; border: 1px solid #ccc;">₹{{ min_payment|floatformat:2 }}</td>
+                    <td style="padding: 0.5rem; border: 1px solid #ccc;">₹{{ payment|floatformat:2 }}</td>
+                    <td style="padding: 0.5rem; border: 1px solid #ccc;">{{ months }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 {% endif %}
+
 
 </body>
 </html>

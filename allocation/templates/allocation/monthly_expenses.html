@@ -9,8 +9,6 @@
 </head>
 <body class="bg-gray-50 font-sans leading-normal tracking-normal">
 
-<a href="{% url 'homepage' %}" class="block text-blue-600 hover:text-blue-800 ml-6 mt-6 text-lg">🏠 Home</a>
-
 <div class="max-w-5xl mx-auto px-4 py-10">
     <h1 class="text-4xl font-extrabold text-blue-700 mb-8 text-center">📅 Monthly Expense Tracker</h1>
 
@@ -73,7 +71,7 @@
                         <td class="px-4 py-2">{{ exp.description }}</td>
                         <td class="px-4 py-2 flex gap-2">
                             {% if exp.id %}
-                            <form method="POST" action="{% url 'delete_expense' exp.id %}">
+                            <form method="POST" action="{% url 'delete_monthly_expense' exp.id %}">
                                 {% csrf_token %}
                                 <button type="submit" class="bg-white text-red-600 border border-red-500 px-2 py-1 rounded text-sm hover:bg-red-100 transition">
                                     🗑
