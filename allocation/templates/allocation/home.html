@@ -170,20 +170,20 @@
     <h2>💰 Budget Allocation Optimization 📊</h2>
 
     <p style="text-align: center; font-size: 20px; color: #555;">🤔 Worried about where to spend? <strong>We’ve got your back! 🎯</strong></p>
+
     <!-- Reset Budget Button (Top Right) -->
-    
-<div style="position: absolute; top: 20px; right: 20px;">
-    <form method="post" action="{% url 'reset_budget' %}">
-        {% csrf_token %}
-        <button type="submit" class="reset-btn">🔄 Reset Budget</button>
-    </form>
-</div>
+    <div style="position: absolute; top: 20px; right: 20px;">
+        <form method="post" action="{% url 'reset_budget' %}">
+            {% csrf_token %}
+            <button type="submit" class="reset-btn">🔄 Reset Budget</button>
+        </form>
+    </div>
 
     <div class="container">
         <!-- Form Section -->
         <form method="post">
             {% csrf_token %}
-            
+
             <label for="total_budget">💵 Enter your Total Budget:</label>
             <input type="number" id="total_budget" name="total_budget" required>
 
@@ -194,7 +194,7 @@
                 <div class="department">
                     <label for="department_name">🏢 Department Name:</label>
                     <input type="text" name="departments[]" placeholder="e.g. Marketing" required>
-                    
+
                     <label for="min_funding">📉 Min Funding ($):</label>
                     <input type="number" name="min_funding[]" placeholder="Min Funding" required>
 
@@ -204,101 +204,97 @@
             </div>
 
             <button type="button" onclick="addDepartment()">➕ Add More Departments</button>
-            &nbsp
+            &nbsp;
             <button type="submit">🚀 Optimize My Budget</button>
         </form>
 
         <!-- Results Section -->
-{% if optimized_allocation %}
-<div class="optimized-results">
-    <h3>✅ Optimized Allocation Results:</h3>
-
-    {% if optimized_allocation and optimized_allocation == "No feasible solution found." or optimized_allocation|slice:":5" == "Error" %}
-
-        <p class="error-message">{{ optimized_allocation }}</p>
+        {% if optimized_allocation %}
+    {% if optimized_allocation.items %}
+        <div style="margin-top: 40px; padding: 20px; border: 2px solid #ddd; border-radius: 12px; background: #f9f9f9; max-width: 700px; margin-left: auto; margin-right: auto;">
+            <h2 style="text-align: center; color: #333;">🎯 Optimized Budget Allocation</h2>
+            <ul id="result-list" style="list-style: none; padding: 0; font-size: 18px;">
+                {% for dept, amount in optimized_allocation.items %}
+                    <li style="margin-bottom: 10px;">
+                        <span style="display: inline-block; min-width: 150px;"><strong>🏢 {{ dept }}:</strong></span> ₹{{ amount }}
+                    </li>
+                {% endfor %}
+            </ul>
+            <hr style="margin: 20px 0;">
+            <p style="text-align: center; font-weight: bold; font-size: 18px;">💸 Total Allocated: ₹{{ total_allocated }} / ₹{{ budget }}</p>
+        </div>
     {% else %}
-        <ul id="result-list">
-            {% for department, amount in optimized_allocation %}
-                <li><span>🏢 {{ department }}:</span> 💵 ${{ amount }}</li>
-            {% empty %}
-                <p class="error-message">⚠ No valid allocations found.</p>
-            {% endfor %}
-        </ul>
+        <p style="text-align: center; color: red; font-weight: bold;">{{ optimized_allocation }}</p>
     {% endif %}
-</div>
 {% endif %}
 
 
-    <!-- Chart Container -->
-    <div class="chart-container">
-        <canvas id="budgetChart"></canvas>
+        <!-- Chart Container -->
+        <div class="chart-container">
+            <canvas id="budgetChart"></canvas>
+        </div>
+
+        <!-- Expense Tracker Section -->
+        <div class="expense-tracker-container">
+            <a href="{% url 'expense_list' %}" style="width: 100%;">
+                <button id="expenseTrackerBtn">📜 Go to Expense Tracker</button>
+            </a>
+        </div>
     </div>
-<!-- Expense Tracker Section (Updated) -->
-<!-- Expense Tracker Section (Updated) -->
-<div class="expense-tracker-container">
-    <a href="{% url 'expense_list' %}" style="width: 100%;">
-        <button id="expenseTrackerBtn">📜 Go to Expense Tracker</button>
-    </a>
-</div>
 
+    <script>
+        function addDepartment() {
+            let div = document.createElement("div");
+            div.classList.add("department");
+            let index = document.querySelectorAll(".department").length;
+            div.innerHTML = `
+                <label for="department_name_${index}">🏢 Department Name:</label>
+                <input type="text" id="department_name_${index}" name="departments[]" placeholder="e.g. Marketing" required>
+                
+                <label for="min_funding_${index}">📉 Min Funding ($):</label>
+                <input type="number" id="min_funding_${index}" name="min_funding[]" placeholder="Min Funding" required>
+                
+                <label for="max_funding_${index}">📈 Max Funding ($):</label>
+                <input type="number" id="max_funding_${index}" name="max_funding[]" placeholder="Max Funding" required>
+            `;
+            document.getElementById("departments").appendChild(div);
+        }
 
-
-<script>
-    function addDepartment() {
-        let div = document.createElement("div");
-        div.classList.add("department");
-        let index = document.querySelectorAll(".department").length;
-        div.innerHTML = `
-         <label for="department_name_${index}">🏢 Department Name:</label>
-         <input type="text" id="department_name_${index}" name="departments[]" placeholder="e.g. Marketing" required>
-         
-         <label for="min_funding_${index}">📉 Min Funding ($):</label>
-         <input type="number" id="min_funding_${index}" name="min_funding[]" placeholder="Min Funding" required>
-         
-         <label for="max_funding_${index}">📈 Max Funding ($):</label>
-         <input type="number" id="max_funding_${index}" name="max_funding[]" placeholder="Max Funding" required>
-        `;
-        document.getElementById("departments").appendChild(div);
-    }
-
-    // Render the Chart (if data exists)
-    document.addEventListener("DOMContentLoaded", function() {
-        let resultList = document.getElementById("result-list");
-        if (resultList) {
-            let labels = [];
-            let data = [];
-            resultList.querySelectorAll("li").forEach(item => {
-                let text = item.innerText.trim();
-                let parts = text.split("💵 $");
-                if (parts.length === 2) {
-                    labels.push(parts[0].replace("🏢 ", "").trim());
-                    data.push(parseFloat(parts[1].replace(",", "")));
-                }
-            });
-
-            if (labels.length > 0) {
-                let ctx = document.getElementById("budgetChart").getContext("2d");
-                new Chart(ctx, {
-                    type: 'bar', // You can change to 'pie', 'line', etc.
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: '💰 Allocated Budget',
-                            data: data,
-                            backgroundColor: ['#ff9999', '#66b3ff', '#99ff99', '#ffcc99', '#c2c2f0', '#ffb3e6'],
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: { beginAtZero: true }
-                        }
+        document.addEventListener("DOMContentLoaded", function () {
+            let resultList = document.getElementById("result-list");
+            if (resultList) {
+                let labels = [];
+                let data = [];
+                resultList.querySelectorAll("li").forEach(item => {
+                    let parts = item.innerText.split("₹");
+                    if (parts.length === 2) {
+                        labels.push(parts[0].trim());
+                        data.push(parseFloat(parts[1].replace(",", "")));
                     }
                 });
+
+                if (labels.length > 0) {
+                    let ctx = document.getElementById("budgetChart").getContext("2d");
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: '💰 Allocated Budget',
+                                data: data,
+                                backgroundColor: ['#ff9999', '#66b3ff', '#99ff99', '#ffcc99', '#c2c2f0', '#ffb3e6'],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: { beginAtZero: true }
+                            }
+                        }
+                    });
+                }
             }
-        }
-    });
-</script>
+        });
+    </script>
 </body>
-</html>

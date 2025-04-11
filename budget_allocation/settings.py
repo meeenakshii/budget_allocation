@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-2r@8w$0kk5%v0yb7sqk_gx0djb%do^b*8_q-3j=85!z!w(_^@7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['budget-buddy-web.onrender.com']  # Use '*' during development, but restrict it in production
+ALLOWED_HOSTS = []  # Use '*' during development, but restrict it in production
 
 
 
@@ -124,11 +124,12 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 import os
-STATICFILES_DIRS = [BASE_DIR / 'static'] 
-# Static files (CSS, JS, etc.)
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+import os
 
-# Media files (user uploads like images)
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # for collectstatic
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'allocation', 'static')]
+
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # where uploaded files are stored
+

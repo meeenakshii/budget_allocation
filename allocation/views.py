@@ -39,8 +39,8 @@ def optimize_budget(budget, departments, min_funding, max_funding):
 
 
 from django.shortcuts import render, redirect
-import numpy as np
 from scipy.optimize import linprog
+import numpy as np
 
 def home(request):
     optimized_allocation = request.session.get("optimized_allocation", None)
@@ -50,30 +50,30 @@ def home(request):
     max_funding = request.session.get("max_funding", [])
 
     if request.method == "POST":
-        if "clear_budget" in request.POST:  # Reset everything
+        if "clear_budget" in request.POST:
             request.session.flush()
             return redirect("home")
 
         try:
-            # Get Total Budget
+            # Get new total budget input
             new_budget = float(request.POST.get("total_budget", 0))
-            if budget is not None:
-                budget += new_budget
-            else:
-                budget = new_budget
+            budget = new_budget  # Overwrite each time for simplicity
 
-            # Retrieve department details
+            # Retrieve form data
             new_departments = request.POST.getlist("departments[]")
             new_min_funding = request.POST.getlist("min_funding[]")
             new_max_funding = request.POST.getlist("max_funding[]")
 
-            # Convert values to float and store them
+            departments = []
+            min_funding = []
+            max_funding = []
+
             for dept, min_fund, max_fund in zip(new_departments, new_min_funding, new_max_funding):
                 min_fund = float(min_fund)
                 max_fund = float(max_fund)
 
                 if min_fund > max_fund:
-                    optimized_allocation = f"Error: Min funding cannot be greater than max funding for {dept}."
+                    optimized_allocation = f"❌ Error: Min funding cannot be greater than max funding for {dept}."
                     return render(request, "allocation/home.html", {"optimized_allocation": optimized_allocation})
 
                 departments.append(dept)
@@ -83,44 +83,52 @@ def home(request):
             request.session["departments"] = departments
             request.session["min_funding"] = min_funding
             request.session["max_funding"] = max_funding
+            request.session["budget"] = budget
 
-            # Ensure at least one department exists
-            # Ensure at least two departments exist = len(departments)
             n = len(departments)
             if n < 2:
-                optimized_allocation = "Insufficient data: Please enter at least two departments."
-                return render(request, "allocation/home.html", {"optimized_allocation": optimized_allocation})
+                return render(request, "allocation/home.html", {
+                    "optimized_allocation": "Please enter at least two departments/crops.",
+                })
 
-            else:
-                total_min_funding = sum(min_funding)
-                
-                if budget < total_min_funding:
-                    optimized_allocation = "Error: Budget is too low to satisfy the minimum funding requirements."
-                    return render(request, "allocation/home.html", {"optimized_allocation": optimized_allocation})
+            total_min = sum(min_funding)
+            total_max = sum(max_funding)
 
-                # **Optimization using Linear Programming**
-                c = np.zeros(n)  # Minimize cost (equal distribution)
-                A_ub = np.vstack([np.eye(n), -np.eye(n)])  # Constraints for min/max funding
-                b_ub = np.hstack([max_funding, -np.array(min_funding)])  # Bounds
-                A_eq = np.ones((1, n))  # Total budget constraint
+            if budget < total_min:
+                return render(request, "allocation/home.html", {
+                    "optimized_allocation": "🚫 Budget too low to satisfy minimum needs of all.",
+                })
+
+            # Objective: Distribute as evenly as possible (or zero vector since cost doesn't matter)
+            c = np.zeros(n)
+
+            # Inequality constraints for max and min bounds
+            A_ub = np.vstack([np.eye(n), -np.eye(n)])
+            b_ub = np.hstack([max_funding, -np.array(min_funding)])
+
+            # Equality constraint only if total budget <= sum of max (force full usage of water/budget)
+            A_eq = None
+            b_eq = None
+            if budget <= total_max:
+                A_eq = np.ones((1, n))
                 b_eq = [budget]
+            else:
+                # No equality constraint; allocate only as much as needed
+                pass
 
-                # Solve using Linear Programming
-                result = linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, method="highs")
+            result = linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, method="highs")
 
-                if result.success:
-                    allocation = result.x
-                    optimized_allocation = optimize_budget(budget, departments, min_funding, max_funding)
-
-                    request.session["optimized_allocation"] = optimized_allocation
-                    request.session["budget"] = budget
-                else:
-                    optimized_allocation = "No feasible solution found. Try adjusting your budget or funding constraints."
+            if result.success:
+                allocation = result.x
+                optimized_allocation = {
+                    dept: round(val, 2) for dept, val in zip(departments, allocation)
+                }
+                request.session["optimized_allocation"] = optimized_allocation
+            else:
+                optimized_allocation = "❌ No feasible allocation. Adjust funding ranges or budget."
 
         except Exception as e:
-            optimized_allocation = f"Error: {str(e)}"
-        print("DEBUG optimized_allocation:", optimized_allocation)
-
+            optimized_allocation = f"⚠️ Error: {str(e)}"
 
     return render(request, "allocation/home.html", {
         "optimized_allocation": optimized_allocation,
@@ -166,6 +174,7 @@ def expense_list(request):
         'total_expenses': total_expenses,
         'budget': budget
     })
+
 
 def add_expense(request):
     """Handles adding new expenses to the tracker."""
